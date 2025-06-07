@@ -57,23 +57,20 @@ function onEnd(event) {
       actualCard.style.transition = 'none';
     }, 300);
 
-    const decisionMade = Math.abs(pullDeltax) > DECISION_THRESHOLD;
-    if (decisionMade) {
-      // If the user pulled enough, accept or reject the card
-      if (pullDeltax > 0) {
-        console.log('Card accepted');
-        // Add your logic for accepting the card here
-      } else {
-        console.log('Card rejected');
-        // Add your logic for rejecting the card here
-      }
-    } else {
-      // If the user did not pull enough, reset the card position
-      console.log('Card reset');
-      actualCard.style.transform = 'none';
+    const decisionMade = Math.abs(pullDeltax) >= DECISION_THRESHOLD;
+
+    if (decisionMade){
+        const goRight = pulldeltaX >= 0;
+        // If the user pulled to the right, accept the card
+        const goLeft = !goRight;
+
+    // Add the class to animate the card out of view
+        actualCard.classList.add(goRight ? 'go-right' : 'go-left');
+    }else {
+        console.log('pensando...');
     }
-}
-}
+    }
+}    
 
 
 

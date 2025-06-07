@@ -116,11 +116,11 @@ footer {
     }
 
     &.go-left{
-        transform: translateX(-100%) rotate(-20deg) !important;
+        transform: translateX(-150%) rotate(-30deg) !important;
     }
 
     &.go-right {
-        transform: translateX(100%) rotate(20deg) !important;
+        transform: translateX(150%) rotate(30deg) !important;
     }
 
     & img {
