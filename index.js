@@ -1,78 +1,101 @@
-const DECISION_THRESHOLD = 80; // The threshold for deciding whether to accept or reject the card 
-let isAnimating = false;
-let pullDeltax = 0; // The distance the user has pulled down
+const DECISION_THRESHOLD = 75
 
-function startDrag(event) {
-  if (isAnimating) return;
+  let isAnimating = false
+  let pullDeltaX = 0 // distance from the card being dragged
 
-  //get the first atrticle element  
-  const actualCard = event.target.closest('article');
+  function startDrag(event) {
+    if (isAnimating) return
 
-  //get initial position of the mouse or finger
-  const startX = event.pageX ?? event.touches[0].pageX;
-  console.log(startX);
+    // get the first article element
+    const actualCard = event.target.closest('article')
+    if (!actualCard) return
 
-  //Listen to the mouse, and touch movements
-  document.addEventListener('mousemove', onMove);
-  document.addEventListener('mouseup', onEnd);
+    // get initial position of mouse or finger
+    const startX = event.pageX ?? event.touches[0].pageX
 
-  document.addEventListener('touchmove', onMove, { passive: true });
-  document.addEventListener('touchend', onEnd, { passive: true });
+    // listen the mouse and touch movements
+    document.addEventListener('mousemove', onMove)
+    document.addEventListener('mouseup', onEnd)
 
-  function onMove(event) {
-    //Current positio of the nmouse or finger
-  const currentX = event.pageX ?? event.touches[0].pageX;
-  //The distance between the initial position and the current position
-  pullDeltax = currentX - startX;
-    // No distance pulled, do nothing
-  if (pullDeltax === 0) return
-    //change the flag to indicate we are animating
-  isAnimating = true;
-    const deg = pullDeltax / 10; // Calculate the rotation degree based on the pull distance
-    actualCard.style.transform = `translatex(${pullDeltax}px) rotate(${deg}deg)`;
-    actualCard.style.cursor = 'grabbing';
-}
+    document.addEventListener('touchmove', onMove, { passive: true })
+    document.addEventListener('touchend', onEnd, { passive: true })
 
+    function onMove(event) {
+      // current position of mouse or finger
+      const currentX = event.pageX ?? event.touches[0].pageX
 
-function onEnd(event) {
-    // Remove the event listeners
-    document.removeEventListener('mousemove', onMove);
-    document.removeEventListener('mouseup', onEnd);
+      // the distance between the initial and current position
+      pullDeltaX = currentX - startX
 
-    document.removeEventListener('touchmove', onMove);
-    document.removeEventListener('touchend', onEnd);
+      // there is no distance traveled in X axis
+      if (pullDeltaX === 0) return
 
-    // Reset the flag
-    isAnimating = false;
-    // Reset the distance
-    pullDeltax = 0;
-    // Reset the transform style
-    actualCard.style.transform = 'none';
-    // Reset the cursor style
-    actualCard.style.cursor = 'grab';
-    // Optionally, you can add a transition effect for smoothness
-    actualCard.style.transition = 'transform 0.3s ease-out';
-    // Remove the transition after it completes
-    setTimeout(() => {
-      actualCard.style.transition = 'none';
-    }, 300);
+      // change the flag to indicate we are animating
+      isAnimating = true
 
-    const decisionMade = Math.abs(pullDeltax) >= DECISION_THRESHOLD;
+      // calculate the rotation of the card using the distance
+      const deg = pullDeltaX / 14
 
-    if (decisionMade){
-        const goRight = pulldeltaX >= 0;
-        // If the user pulled to the right, accept the card
-        const goLeft = !goRight;
+      // apply the transformation to the card
+      actualCard.style.transform = `translateX(${pullDeltaX}px) rotate(${deg}deg)`
 
-    // Add the class to animate the card out of view
-        actualCard.classList.add(goRight ? 'go-right' : 'go-left');
-    }else {
-        console.log('pensando...');
+      // change the cursor to grabbing
+      actualCard.style.cursor = 'grabbing'
+
+      // change opacity of the choice info
+      const opacity = Math.abs(pullDeltaX) / 100
+      const isRight = pullDeltaX > 0
+
+      const choiceEl = isRight
+        ? actualCard.querySelector('.choice.like')
+        : actualCard.querySelector('.choice.nope')
+
+      choiceEl.style.opacity = opacity
     }
+
+    function onEnd(event) {
+      // remove the event listeners
+      document.removeEventListener('mousemove', onMove)
+      document.removeEventListener('mouseup', onEnd)
+
+      document.removeEventListener('touchmove', onMove)
+      document.removeEventListener('touchend', onEnd)
+
+      // saber si el usuario tomo una decisión
+      const decisionMade = Math.abs(pullDeltaX) >= DECISION_THRESHOLD
+
+      if (decisionMade) {
+        const goRight = pullDeltaX >= 0
+
+        // add class according to the decision
+        actualCard.classList.add(goRight ? 'go-right' : 'go-left')
+        actualCard.addEventListener('transitionend', () => {
+          actualCard.remove()
+        })
+      } else {
+        actualCard.classList.add('reset')
+        actualCard.classList.remove('go-right', 'go-left')
+
+        actualCard.querySelectorAll('.choice').forEach(choice => {
+          choice.style.opacity = 0
+        })
+      }
+
+      // reset the variables
+      actualCard.addEventListener('transitionend', () => {
+        actualCard.removeAttribute('style')
+        actualCard.classList.remove('reset')
+
+        pullDeltaX = 0
+        isAnimating = false
+      })
+
+      // reset the choice info opacity
+      actualCard
+        .querySelectorAll(".choice")
+        .forEach((el) => (el.style.opacity = 0));
     }
-}    
+  }
 
-
-
-document.addEventListener('mousedown', startDrag);
-document.addEventListener('touchstart', startDrag, { passive: true });
+  document.addEventListener('mousedown', startDrag)
+  document.addEventListener('touchstart', startDrag, { passive: true })
